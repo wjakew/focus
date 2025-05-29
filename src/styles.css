@@ -336,6 +336,20 @@ body {
     background: #2e3c64 !important;
 }
 
+/* Light mode CodeMirror customization */
+:root[data-theme="light"] .CodeMirror-selected {
+    background: #e0e0e0 !important;
+}
+
+/* Headers in editor */
+.cm-header {
+    color: #ff9e64 !important;
+}
+
+:root[data-theme="light"] .cm-header {
+    color: var(--text-color) !important;
+}
+
 /* Preview styling */
 #preview {
     font-family: var(--font-family);
@@ -349,7 +363,7 @@ body {
     margin-bottom: 16px;
     font-weight: 600;
     line-height: 1.25;
-    color: #c0caf5;
+    color: #ff9e64;
 }
 
 #preview h1 {
@@ -417,7 +431,7 @@ body {
     font-size: 85%;
     background-color: var(--hover-color);
     border-radius: 4px;
-    color: #7aa2f7;
+    color: var(--text-color);
 }
 
 #preview pre {
@@ -513,6 +527,12 @@ body {
 ::selection {
     background-color: #2e3c64;
     color: #c0caf5;
+}
+
+/* Light mode selection */
+:root[data-theme="light"] ::selection {
+    background-color: #e0e0e0;
+    color: #333333;
 }
 
 /* Menu and View buttons in titlebar */
@@ -940,4 +960,86 @@ body {
 
 #ai-btn:hover {
     background-color: var(--hover-color);
+}
+
+/* Light mode should keep original colors */
+:root[data-theme="light"] #preview code {
+    color: #7aa2f7;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-color);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #ff9e64;
+    border-radius: 5px;
+    border: 2px solid var(--bg-color);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #ffb088;
+}
+
+/* Light mode scrollbar */
+:root[data-theme="light"] ::-webkit-scrollbar-track {
+    background: #f0f0f0;
+}
+
+:root[data-theme="light"] ::-webkit-scrollbar-thumb {
+    background: #ff9e64;
+    border: 2px solid #f0f0f0;
+}
+
+:root[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+    background: #ffb088;
+}
+
+/* CodeMirror scrollbar override */
+.CodeMirror-vscrollbar::-webkit-scrollbar,
+.CodeMirror-hscrollbar::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+.CodeMirror-vscrollbar::-webkit-scrollbar-track,
+.CodeMirror-hscrollbar::-webkit-scrollbar-track {
+    background: var(--bg-color);
+    border-radius: 5px;
+}
+
+.CodeMirror-vscrollbar::-webkit-scrollbar-thumb,
+.CodeMirror-hscrollbar::-webkit-scrollbar-thumb {
+    background: #ff9e64;
+    border-radius: 5px;
+    border: 2px solid var(--bg-color);
+}
+
+.CodeMirror-vscrollbar::-webkit-scrollbar-thumb:hover,
+.CodeMirror-hscrollbar::-webkit-scrollbar-thumb:hover {
+    background: #ffb088;
+}
+
+/* Light mode CodeMirror scrollbar */
+:root[data-theme="light"] .CodeMirror-vscrollbar::-webkit-scrollbar-track,
+:root[data-theme="light"] .CodeMirror-hscrollbar::-webkit-scrollbar-track {
+    background: #f0f0f0;
+}
+
+:root[data-theme="light"] .CodeMirror-vscrollbar::-webkit-scrollbar-thumb,
+:root[data-theme="light"] .CodeMirror-hscrollbar::-webkit-scrollbar-thumb {
+    background: #ff9e64;
+    border: 2px solid #f0f0f0;
+}
+
+:root[data-theme="light"] .CodeMirror-vscrollbar::-webkit-scrollbar-thumb:hover,
+:root[data-theme="light"] .CodeMirror-hscrollbar::-webkit-scrollbar-thumb:hover {
+    background: #ffb088;
 }
