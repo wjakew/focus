@@ -210,12 +210,64 @@ The current user prompt is: ${message}`
         const messageDiv = document.createElement('div');
         messageDiv.className = `chat-message ${type}-message`;
         
+        // Store the original content as a data attribute
+        messageDiv.setAttribute('data-original-content', content);
+        
         if (type === 'user') {
             // For user messages, escape HTML and maintain line breaks
             messageDiv.textContent = content;
         } else {
             // For AI messages, render as markdown
             messageDiv.innerHTML = DOMPurify.sanitize(marked.parse(content));
+            
+            // Create message actions container
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'message-actions';
+            
+            // Create copy button
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'message-action-btn copy';
+            copyBtn.textContent = 'copy';
+            copyBtn.onclick = async () => {
+                try {
+                    const originalContent = messageDiv.getAttribute('data-original-content');
+                    await navigator.clipboard.writeText(originalContent);
+                    const notification = document.createElement('div');
+                    notification.className = 'copy-notification';
+                    notification.textContent = 'Copied!';
+                    messageDiv.appendChild(notification);
+                    setTimeout(() => notification.remove(), 1500);
+                } catch (err) {
+                    console.error('Failed to copy:', err);
+                }
+            };
+            
+            // Create new chat button
+            const newChatBtn = document.createElement('button');
+            newChatBtn.className = 'message-action-btn chat';
+            newChatBtn.textContent = 'chat';
+            newChatBtn.onclick = () => {
+                const originalContent = messageDiv.getAttribute('data-original-content');
+                // Clear chat history
+                chatMessages.innerHTML = '';
+                chatHistory = [];
+                
+                // Add system message
+                addMessageToChat('ai', 'Starting new chat with the selected message.');
+                
+                // Set the message as user input
+                chatInput.value = originalContent;
+                
+                // Focus the input
+                chatInput.focus();
+            };
+            
+            // Add buttons to actions container
+            actionsDiv.appendChild(copyBtn);
+            actionsDiv.appendChild(newChatBtn);
+            
+            // Add actions to message
+            messageDiv.appendChild(actionsDiv);
         }
         
         chatMessages.appendChild(messageDiv);
@@ -225,7 +277,57 @@ The current user prompt is: ${message}`
     // Function to update streaming message content
     function updateMessageContent(content) {
         if (currentMessageDiv) {
+            // Store existing actions if any
+            const existingActions = currentMessageDiv.querySelector('.message-actions');
+            
+            // Update the original content data attribute
+            currentMessageDiv.setAttribute('data-original-content', content);
+            
+            // Update content
             currentMessageDiv.innerHTML = DOMPurify.sanitize(marked.parse(content));
+            
+            // If there were actions, recreate them
+            if (existingActions) {
+                currentMessageDiv.appendChild(existingActions);
+            } else {
+                // Create new actions for the first time
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'message-actions';
+                
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'message-action-btn copy';
+                copyBtn.textContent = 'copy';
+                copyBtn.onclick = async () => {
+                    try {
+                        const originalContent = currentMessageDiv.getAttribute('data-original-content');
+                        await navigator.clipboard.writeText(originalContent);
+                        const notification = document.createElement('div');
+                        notification.className = 'copy-notification';
+                        notification.textContent = 'Copied!';
+                        currentMessageDiv.appendChild(notification);
+                        setTimeout(() => notification.remove(), 1500);
+                    } catch (err) {
+                        console.error('Failed to copy:', err);
+                    }
+                };
+                
+                const newChatBtn = document.createElement('button');
+                newChatBtn.className = 'message-action-btn chat';
+                newChatBtn.textContent = 'chat';
+                newChatBtn.onclick = () => {
+                    const originalContent = currentMessageDiv.getAttribute('data-original-content');
+                    chatMessages.innerHTML = '';
+                    chatHistory = [];
+                    addMessageToChat('ai', 'Starting new chat with the selected message.');
+                    chatInput.value = originalContent;
+                    chatInput.focus();
+                };
+                
+                actionsDiv.appendChild(copyBtn);
+                actionsDiv.appendChild(newChatBtn);
+                currentMessageDiv.appendChild(actionsDiv);
+            }
+            
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
     }

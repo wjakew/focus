@@ -688,9 +688,10 @@ body {
 }
 
 .chat-message {
+    position: relative;
     margin-bottom: 12px;
-    padding: 8px 12px;
-    border-radius: var(--border-radius-md);
+    padding: 12px 16px;
+    border-radius: 12px;
     max-width: 85%;
     font-size: 14px;
     line-height: 1.5;
@@ -759,6 +760,8 @@ body {
 .ai-message {
     background-color: var(--toolbar-bg);
     margin-right: auto;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .ai-message a {
@@ -1042,4 +1045,75 @@ body {
 :root[data-theme="light"] .CodeMirror-vscrollbar::-webkit-scrollbar-thumb:hover,
 :root[data-theme="light"] .CodeMirror-hscrollbar::-webkit-scrollbar-thumb:hover {
     background: #ffb088;
+}
+
+/* Message Actions */
+.message-actions {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: none;
+    gap: 6px;
+    padding: 4px;
+    border-radius: var(--border-radius-sm);
+    z-index: 10;
+}
+
+.ai-message:hover .message-actions {
+    display: flex;
+}
+
+.message-action-btn {
+    background: transparent;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    color: white;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    font-family: var(--font-family);
+    min-width: 45px;
+    height: 24px;
+}
+
+.message-action-btn.copy {
+    background: #ff9e64;
+}
+
+.message-action-btn.chat {
+    background: #4caf50;
+}
+
+.message-action-btn:hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
+    box-shadow: var(--shadow-soft);
+}
+
+.message-action-btn:active {
+    transform: translateY(0);
+}
+
+.copy-notification {
+    position: absolute;
+    top: -28px;
+    right: 0;
+    background: var(--accent-color);
+    color: white;
+    padding: 4px 8px;
+    border-radius: var(--border-radius-sm);
+    font-size: 12px;
+    animation: fadeOut 1.5s ease forwards;
+    z-index: 11;
+}
+
+@keyframes fadeOut {
+    0% { opacity: 1; transform: translateY(0); }
+    70% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-4px); }
 }
