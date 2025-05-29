@@ -1,0 +1,29 @@
+{
+  "name": "focus",
+  "version": "1.0.0",
+  "description": "Your new note taking haven",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/icons/mac/icon.icns --prune=true --out=release-builds",
+    "package-win": "electron-packager . --overwrite --platform=win32 --arch=x64 --icon=assets/icons/win/icon.ico --prune=true --out=release-builds",
+    "package-linux": "electron-packager . --overwrite --platform=linux --arch=x64 --icon=assets/icons/png/icon.png --prune=true --out=release-builds"
+  },
+  "keywords": [
+    "Markdown",
+    "Editor",
+    "Electron"
+  ],
+  "author": "Jakub Wawak",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^29.1.0",
+    "electron-packager": "^17.1.2"
+  },
+  "dependencies": {
+    "codemirror": "^6.0.1",
+    "electron-store": "^8.1.0",
+    "marked": "^11.1.1",
+    "dompurify": "^3.0.8"
+  }
+}
