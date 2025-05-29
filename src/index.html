@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdnjs.cloudflare.com; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdnjs.cloudflare.com http://localhost:11434; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self' http://localhost:11434;">
   <title>Markdown Editor</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
   <link rel="stylesheet" href="styles.css">
@@ -30,6 +30,13 @@
             <button id="toggle-toolbar">Toggle Toolbar</button>
             <button id="toggle-toolbar-mode">Toolbar Mode: Panel</button>
             <button id="toggle-theme">Toggle Theme</button>
+          </div>
+        </div>
+        <div class="menu-button">
+          <button id="ai-btn">AI</button>
+          <div id="ai-dropdown" class="menu-dropdown">
+            <button id="ai-settings">Settings</button>
+            <button id="toggle-chat">Toggle Chat Panel</button>
           </div>
         </div>
       </div>
@@ -90,11 +97,44 @@
       <div class="preview-section">
         <div id="preview"></div>
       </div>
+
+      <div class="chat-section hidden">
+        <div class="chat-header">
+          <span>AI Chat</span>
+          <button id="close-chat" class="close-chat-btn">×</button>
+        </div>
+        <div id="chat-messages"></div>
+        <div class="chat-input-container">
+          <textarea id="chat-input" placeholder="Type your message..."></textarea>
+          <button id="send-message">Send</button>
+        </div>
+      </div>
     </div>
     
     <div class="status-bar">
       <div id="file-info">Untitled</div>
       <div id="word-count">0 words</div>
+    </div>
+  </div>
+
+  <!-- AI Settings Dialog -->
+  <div id="ai-settings-dialog" class="dialog hidden">
+    <div class="dialog-content">
+      <h2>AI Settings</h2>
+      <div class="settings-form">
+        <div class="form-group">
+          <label for="ollama-url">Ollama API URL:</label>
+          <input type="text" id="ollama-url" placeholder="http://localhost:11434" />
+        </div>
+        <div class="form-group">
+          <label for="model-name">Model Name:</label>
+          <input type="text" id="model-name" placeholder="llama2" />
+        </div>
+        <div class="dialog-buttons">
+          <button id="save-settings">Save</button>
+          <button id="cancel-settings">Cancel</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -104,5 +144,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js"></script>
   <script src="window-controls.js"></script>
   <script src="renderer.js"></script>
+  <script src="ai-integration.js"></script>
 </body>
 </html>
