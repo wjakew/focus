@@ -60,6 +60,99 @@ document.addEventListener('DOMContentLoaded', () => {
         window.api.saveFileAs();
     });
     
+    // Function to show markdown component menu
+    function showMarkdownComponentMenu(editor) {
+      // Create menu element
+      const menu = document.createElement('div');
+      menu.className = 'markdown-component-menu';
+      menu.style.position = 'absolute';
+      menu.style.zIndex = '1000';
+      menu.style.backgroundColor = 'var(--toolbar-bg)';
+      menu.style.border = '1px solid var(--border-color)';
+      menu.style.borderRadius = '4px';
+      menu.style.boxShadow = '0 4px 12px var(--shadow-color)';
+      menu.style.padding = '8px 0';
+      menu.style.minWidth = '200px';
+
+      // Define available components
+      const components = [
+        { label: 'Heading 1', insert: '# ' },
+        { label: 'Heading 2', insert: '## ' },
+        { label: 'Heading 3', insert: '### ' },
+        { label: 'Bold', insert: '**Bold text**' },
+        { label: 'Italic', insert: '*Italic text*' },
+        { label: 'Code Block', insert: '```\ncode\n```' },
+        { label: 'Inline Code', insert: '`code`' },
+        { label: 'Link', insert: '[Link text](url)' },
+        { label: 'Image', insert: '![Alt text](image-url)' },
+        { label: 'Blockquote', insert: '> ' },
+        { label: 'Unordered List', insert: '- ' },
+        { label: 'Ordered List', insert: '1. ' },
+        { label: 'Task List', insert: '- [ ] ' },
+        { label: 'Table', insert: '| Header 1 | Header 2 |\n| -------- | -------- |\n| Cell 1   | Cell 2   |' },
+        { label: 'Horizontal Rule', insert: '---\n' }
+      ];
+
+      // Add menu items
+      components.forEach(component => {
+        const item = document.createElement('div');
+        item.className = 'markdown-component-item';
+        item.style.padding = '8px 16px';
+        item.style.cursor = 'pointer';
+        item.style.color = 'var(--text-color)';
+        item.textContent = component.label;
+
+        item.addEventListener('mouseover', () => {
+          item.style.backgroundColor = 'var(--hover-color)';
+        });
+
+        item.addEventListener('mouseout', () => {
+          item.style.backgroundColor = 'transparent';
+        });
+
+        item.addEventListener('click', () => {
+          const cursor = editor.getCursor();
+          const line = editor.getLine(cursor.line);
+          
+          // Remove the "/" character
+          editor.replaceRange('', { line: cursor.line, ch: cursor.ch - 1 }, cursor);
+          
+          // Insert the component
+          editor.replaceRange(component.insert, cursor);
+          
+          // Remove the menu
+          menu.remove();
+          
+          // Focus back on editor
+          editor.focus();
+        });
+
+        menu.appendChild(item);
+      });
+
+      // Position the menu at cursor
+      const cursor = editor.getCursor();
+      const cursorPos = editor.cursorCoords(cursor);
+      menu.style.left = cursorPos.left + 'px';
+      menu.style.top = cursorPos.top + 20 + 'px';
+
+      // Add menu to editor
+      document.body.appendChild(menu);
+
+      // Close menu when clicking outside
+      function handleClickOutside(e) {
+        if (!menu.contains(e.target)) {
+          menu.remove();
+          document.removeEventListener('click', handleClickOutside);
+        }
+      }
+      
+      // Small delay to prevent immediate closing
+      setTimeout(() => {
+        document.addEventListener('click', handleClickOutside);
+      }, 100);
+    }
+    
     // Initialize CodeMirror editor
     editor = CodeMirror(document.getElementById('editor'), {
       mode: 'markdown',
@@ -77,6 +170,13 @@ document.addEventListener('DOMContentLoaded', () => {
             cm.replaceSelection('  ', 'end', '+input');
           }
         }
+      }
+    });
+    
+    // Add key handler for "/"
+    editor.on('keyup', (cm, event) => {
+      if (event.key === '/') {
+        showMarkdownComponentMenu(cm);
       }
     });
     
