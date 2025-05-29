@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let editor;
     let currentContent = '';
     let currentFilePath = null;
+    let isToolbarVisible = true;
+    let isToolbarFloating = false;
     
     // Menu functionality
     const menuBtn = document.getElementById('menu-btn');
@@ -11,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewBtn = document.getElementById('view-btn');
     const viewDropdown = document.getElementById('view-dropdown');
     const previewSection = document.querySelector('.preview-section');
+    const toolbar = document.querySelector('.toolbar');
     
     // Toggle menu dropdown
     menuBtn.addEventListener('click', (e) => {
@@ -41,6 +44,21 @@ document.addEventListener('DOMContentLoaded', () => {
         editorSection.style.width = previewSection.classList.contains('hidden') ? '100%' : '';
         // Trigger a refresh on the editor to ensure proper rendering
         editor.refresh();
+    });
+    
+    // Toggle toolbar visibility
+    document.getElementById('toggle-toolbar').addEventListener('click', () => {
+        isToolbarVisible = !isToolbarVisible;
+        toolbar.classList.toggle('hidden');
+        viewDropdown.classList.remove('show');
+    });
+
+    // Toggle toolbar mode (panel/floating)
+    document.getElementById('toggle-toolbar-mode').addEventListener('click', (e) => {
+        isToolbarFloating = !isToolbarFloating;
+        toolbar.classList.toggle('floating');
+        e.target.textContent = `Toolbar Mode: ${isToolbarFloating ? 'Floating' : 'Panel'}`;
+        viewDropdown.classList.remove('show');
     });
     
     // File operation handlers
