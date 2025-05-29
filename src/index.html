@@ -14,6 +14,8 @@
       <div class="titlebar-drag-region"></div>
       <div class="window-title">
         <span class="title">focus.</span>
+      </div>
+      <div class="menu-controls">
         <div class="menu-button">
           <button id="menu-btn">Menu</button>
           <div id="menu-dropdown" class="menu-dropdown">
@@ -101,7 +103,10 @@
       <div class="chat-section hidden">
         <div class="chat-header">
           <span>AI Chat</span>
-          <button id="close-chat" class="close-chat-btn">×</button>
+          <div class="chat-header-buttons">
+            <button id="clear-chat" class="clear-chat-btn" title="Clear Chat">🗑️</button>
+            <button id="close-chat" class="close-chat-btn">×</button>
+          </div>
         </div>
         <div id="chat-messages"></div>
         <div class="chat-input-container">

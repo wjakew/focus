@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatInput = document.getElementById('chat-input');
     const sendMessage = document.getElementById('send-message');
     const chatMessages = document.getElementById('chat-messages');
+    const clearChat = document.getElementById('clear-chat');
     
     // Configure marked.js
     marked.setOptions({
@@ -117,21 +118,22 @@ document.addEventListener('DOMContentLoaded', () => {
         ).join('\n');
         
         // Construct the system prompt
-        const systemPrompt = `You are a AI assistant that help user writing notes. 
-
+        const systemPrompt = `You are an AI assistant that helps users with their notes. You can provide general assistance, answer questions, and help with writing and editing when asked.
 Chat history:
 ${formattedHistory}
-
 The current content of user note:
 <note_content>
 ${noteContent}
 </note_content>
 
-if user ask you to rewrite content of the note return the new note in
+Only if the user explicitly asks you to rewrite or modify the note content, provide the new version within these tags:
 <new_note>
 note_content
 </new_note>
-the current user prompt is: ${message}`;
+
+Otherwise, just provide a normal helpful response.
+
+The current user prompt is: ${message}`
         
         // Add user message to chat
         addMessageToChat('user', message);
@@ -154,8 +156,7 @@ the current user prompt is: ${message}`;
                 body: JSON.stringify({
                     model: modelName,
                     prompt: systemPrompt,
-                    stream: true,
-                    system: "You are an AI assistant specialized in helping users write and edit notes. Always maintain a professional and helpful tone."
+                    stream: true
                 })
             });
             
@@ -296,4 +297,14 @@ the current user prompt is: ${message}`;
         document.removeEventListener('mouseup', handleMouseUp);
         document.body.style.userSelect = '';
     }
+
+    // Clear chat functionality
+    clearChat.addEventListener('click', () => {
+        // Clear the chat messages from the UI
+        chatMessages.innerHTML = '';
+        // Clear the chat history array
+        chatHistory = [];
+        // Add a system message to show the chat was cleared
+        addMessageToChat('ai', 'Chat history has been cleared.');
+    });
 }); 
