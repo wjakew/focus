@@ -5,7 +5,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentContent = '';
     let currentFilePath = null;
     let isToolbarVisible = true;
-    let isToolbarFloating = false;
+    let isToolbarFloating = true;
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let toolbarStartX = 0;
+    let toolbarStartY = 0;
     
     // Menu functionality
     const menuBtn = document.getElementById('menu-btn');
@@ -14,6 +19,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewDropdown = document.getElementById('view-dropdown');
     const previewSection = document.querySelector('.preview-section');
     const toolbar = document.querySelector('.toolbar');
+    
+    // Set initial toolbar state
+    toolbar.classList.add('floating');
+    toolbar.style.left = '20px';
+    toolbar.style.bottom = '20px';
+    toolbar.style.top = 'auto';
+    toolbar.style.right = 'auto';
     
     // Toggle menu dropdown
     menuBtn.addEventListener('click', (e) => {
@@ -53,10 +65,81 @@ document.addEventListener('DOMContentLoaded', () => {
         viewDropdown.classList.remove('show');
     });
 
+    // Add drag functionality to toolbar
+    function initToolbarDrag() {
+        toolbar.addEventListener('mousedown', (e) => {
+            if (!isToolbarFloating) return;
+            
+            isDragging = true;
+            toolbar.classList.add('dragging');
+            
+            // Get initial positions
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+            toolbarStartX = toolbar.offsetLeft;
+            toolbarStartY = toolbar.offsetTop;
+            
+            // Calculate toolbar bounds
+            const toolbarRect = toolbar.getBoundingClientRect();
+            const offsetX = e.clientX - toolbarRect.left;
+            const offsetY = e.clientY - toolbarRect.top;
+            
+            function onMouseMove(e) {
+                if (!isDragging) return;
+                
+                // Calculate new position
+                let newX = e.clientX - offsetX;
+                let newY = e.clientY - offsetY;
+                
+                // Get window bounds
+                const maxX = window.innerWidth - toolbarRect.width;
+                const maxY = window.innerHeight - toolbarRect.height;
+                
+                // Keep toolbar within window bounds
+                newX = Math.max(0, Math.min(newX, maxX));
+                newY = Math.max(0, Math.min(newY, maxY));
+                
+                // Update toolbar position
+                toolbar.style.left = newX + 'px';
+                toolbar.style.top = newY + 'px';
+                toolbar.style.bottom = 'auto';
+                toolbar.style.right = 'auto';
+            }
+            
+            function onMouseUp() {
+                isDragging = false;
+                toolbar.classList.remove('dragging');
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            }
+            
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
+    }
+
+    // Initialize drag functionality
+    initToolbarDrag();
+
     // Toggle toolbar mode (panel/floating)
     document.getElementById('toggle-toolbar-mode').addEventListener('click', (e) => {
         isToolbarFloating = !isToolbarFloating;
         toolbar.classList.toggle('floating');
+        
+        // Reset position when switching to floating mode
+        if (isToolbarFloating) {
+            toolbar.style.left = '20px';
+            toolbar.style.bottom = '20px';
+            toolbar.style.top = 'auto';
+            toolbar.style.right = 'auto';
+        } else {
+            // Reset styles when switching back to panel mode
+            toolbar.style.left = '';
+            toolbar.style.bottom = '';
+            toolbar.style.top = '';
+            toolbar.style.right = '';
+        }
+        
         e.target.textContent = `Toolbar Mode: ${isToolbarFloating ? 'Floating' : 'Panel'}`;
         viewDropdown.classList.remove('show');
     });

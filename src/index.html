@@ -28,7 +28,7 @@
           <div id="view-dropdown" class="menu-dropdown">
             <button id="toggle-preview">Toggle Preview</button>
             <button id="toggle-toolbar">Toggle Toolbar</button>
-            <button id="toggle-toolbar-mode">Toolbar Mode: Panel</button>
+            <button id="toggle-toolbar-mode">Toolbar Mode: Floating</button>
             <button id="toggle-theme">Toggle Theme</button>
           </div>
         </div>
@@ -129,6 +129,10 @@
         <div class="form-group">
           <label for="model-name">Model Name:</label>
           <input type="text" id="model-name" placeholder="llama2" />
+        </div>
+        <div class="form-group">
+          <label for="system-prompt">System Prompt:</label>
+          <textarea id="system-prompt" rows="10" placeholder="Enter your system prompt here..."></textarea>
         </div>
         <div class="dialog-buttons">
           <button id="save-settings">Save</button>
