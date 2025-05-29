@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentContent = '';
     let currentFilePath = null;
     let isToolbarVisible = true;
-    let isToolbarFloating = false;
+    let isToolbarFloating = true;  // Set floating mode as default
     
     // Menu functionality
     const menuBtn = document.getElementById('menu-btn');
@@ -14,6 +14,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewDropdown = document.getElementById('view-dropdown');
     const previewSection = document.querySelector('.preview-section');
     const toolbar = document.querySelector('.toolbar');
+    
+    // Set initial toolbar state to floating
+    toolbar.classList.add('floating');
+    
+    // Update the toolbar mode button text to reflect default state
+    document.getElementById('toggle-toolbar-mode').textContent = 'Toolbar Mode: Floating';
     
     // Toggle menu dropdown
     menuBtn.addEventListener('click', (e) => {
