@@ -1,5 +1,5 @@
 # focus. 
-
+![icon.png](/build/icon.png)
 A lightweight and feature-rich markdown editor built for simplicity and productivity. With privacy-first AI integration.
 
 ![src1](/readme_resources/src1.png)
