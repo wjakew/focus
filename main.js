@@ -67,6 +67,13 @@ function createWindow() {
     saveFileAs();
   });
 
+  // AI content modification handler
+  ipcMain.on('ai-modify-content', (event, content, prompt) => {
+    // Forward the request back to renderer to handle the API call
+    // This allows us to keep the API integration in the renderer process
+    mainWindow.webContents.send('ai-modify-content', content, prompt);
+  });
+
   // Send maximize state to renderer
   mainWindow.on('maximize', () => {
     mainWindow.webContents.send('window-maximized');

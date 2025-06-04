@@ -43,6 +43,7 @@
           <div id="ai-dropdown" class="menu-dropdown">
             <button id="ai-settings">Settings</button>
             <button id="toggle-chat">Toggle Chat Panel</button>
+            <button id="toggle-ai-modifier">Toggle AI Modifier</button>
           </div>
         </div>
       </div>
@@ -145,6 +146,40 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- AI Content Modifier -->
+  <div id="ai-content-modifier" class="ai-content-modifier hidden">
+    <div class="modifier-header">
+      <span>AI Content Modifier</span>
+      <button id="close-modifier" class="close-modifier-btn">×</button>
+    </div>
+    <div class="modifier-body">
+      <textarea id="modifier-prompt" placeholder="Describe how you want to modify this note..."></textarea>
+      <div class="modifier-actions">
+        <button id="modify-content" class="modify-btn">Modify Content</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Modification Result Dialog -->
+  <div id="ai-modification-result" class="dialog hidden">
+    <div class="dialog-content">
+      <h2>AI Modification Result</h2>
+      <div class="diff-container">
+        <div id="diff-display"></div>
+      </div>
+      <div class="dialog-buttons">
+        <button id="accept-changes">Accept Changes</button>
+        <button id="reject-changes">Reject Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="loading-overlay hidden">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">AI is processing your request...</div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>

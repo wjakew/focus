@@ -10,12 +10,15 @@ document.addEventListener('DOMContentLoaded', () => {
     let startX;
     let startWidth;
     let chatHistory = []; // Store chat history
+    let lastOriginalContent = ''; // Store original content before modification
+    let lastModifiedContent = ''; // Store modified content
     
     // Get DOM elements
     const aiBtn = document.getElementById('ai-btn');
     const aiDropdown = document.getElementById('ai-dropdown');
     const aiSettings = document.getElementById('ai-settings');
     const toggleChat = document.getElementById('toggle-chat');
+    const toggleAiModifier = document.getElementById('toggle-ai-modifier');
     const settingsDialog = document.getElementById('ai-settings-dialog');
     const saveSettings = document.getElementById('save-settings');
     const cancelSettings = document.getElementById('cancel-settings');
@@ -25,6 +28,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendMessage = document.getElementById('send-message');
     const chatMessages = document.getElementById('chat-messages');
     const clearChat = document.getElementById('clear-chat');
+    
+    // AI Content Modifier elements
+    const aiContentModifier = document.getElementById('ai-content-modifier');
+    const closeModifier = document.getElementById('close-modifier');
+    const modifierPrompt = document.getElementById('modifier-prompt');
+    const modifyContent = document.getElementById('modify-content');
+    const aiModificationResult = document.getElementById('ai-modification-result');
+    const diffDisplay = document.getElementById('diff-display');
+    const acceptChanges = document.getElementById('accept-changes');
+    const rejectChanges = document.getElementById('reject-changes');
+    const loadingOverlay = document.getElementById('loading-overlay');
     
     // Configure marked.js
     marked.setOptions({
@@ -55,6 +69,17 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleChat.addEventListener('click', () => {
         chatSection.classList.toggle('hidden');
         aiDropdown.classList.remove('show');
+    });
+    
+    // Toggle AI content modifier
+    toggleAiModifier.addEventListener('click', () => {
+        aiContentModifier.classList.toggle('hidden');
+        aiDropdown.classList.remove('show');
+    });
+    
+    // Close AI content modifier
+    closeModifier.addEventListener('click', () => {
+        aiContentModifier.classList.add('hidden');
     });
     
     // Close chat panel
@@ -93,11 +118,104 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
+    // Close AI modification result dialog when clicking outside
+    aiModificationResult.addEventListener('click', (e) => {
+        if (e.target === aiModificationResult) {
+            aiModificationResult.classList.add('hidden');
+        }
+    });
+    
     // Handle chat input
     chatInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             sendMessage.click();
+        }
+    });
+    
+    // Handle modifier prompt input
+    modifierPrompt.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && e.ctrlKey) {
+            e.preventDefault();
+            modifyContent.click();
+        }
+    });
+    
+    // Accept AI changes
+    acceptChanges.addEventListener('click', () => {
+        if (editor && lastModifiedContent) {
+            editor.setValue(lastModifiedContent);
+            aiModificationResult.classList.add('hidden');
+        }
+    });
+    
+    // Reject AI changes
+    rejectChanges.addEventListener('click', () => {
+        aiModificationResult.classList.add('hidden');
+    });
+    
+    // Modify content with AI
+    modifyContent.addEventListener('click', async () => {
+        const prompt = modifierPrompt.value.trim();
+        if (!prompt) {
+            alert('Please enter a prompt for how you want to modify the content.');
+            return;
+        }
+        
+        if (!editor) {
+            alert('Editor not initialized yet. Please try again in a moment.');
+            return;
+        }
+        
+        const noteContent = editor.getValue();
+        lastOriginalContent = noteContent;
+        
+        // Show loading overlay
+        loadingOverlay.classList.remove('hidden');
+        
+        try {
+            // Construct the system prompt
+            const systemPrompt = `You are an AI assistant that helps users modify their notes. The user has the following note content:
+
+<original_content>
+${noteContent}
+</original_content>
+
+The user wants you to modify this content according to this instruction: "${prompt}"
+
+Please provide the modified version of the note content. Return ONLY the modified content without any additional explanations or formatting. The result should be a complete replacement of the original content.`;
+            
+            // Call Ollama API
+            const response = await fetch(`${ollamaUrl}/api/generate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    model: modelName,
+                    prompt: systemPrompt,
+                    stream: false
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to get response from Ollama API');
+            }
+            
+            const data = await response.json();
+            lastModifiedContent = data.response.trim();
+            
+            // Generate diff display
+            generateDiffDisplay(lastOriginalContent, lastModifiedContent);
+            
+            // Show the modification result dialog
+            aiModificationResult.classList.remove('hidden');
+        } catch (error) {
+            console.error('Error modifying content:', error);
+            alert('Error modifying content: ' + error.message);
+        } finally {
+            // Hide loading overlay
+            loadingOverlay.classList.add('hidden');
         }
     });
     
@@ -200,213 +318,286 @@ The current user prompt is: ${message}`
             }
             
         } catch (error) {
-            console.error('Error:', error);
-            addMessageToChat('ai', 'Sorry, there was an error processing your request. Please check your Ollama settings and make sure the service is running.');
+            console.error('Error sending message:', error);
+            addMessageToChat('ai', 'Error: ' + error.message);
         }
     });
     
-    // Function to add message to chat
+    // Clear chat
+    clearChat.addEventListener('click', () => {
+        chatMessages.innerHTML = '';
+        chatHistory = [];
+    });
+    
+    // Function to generate diff display
+    function generateDiffDisplay(originalText, modifiedText) {
+        diffDisplay.innerHTML = '';
+        
+        const originalLines = originalText.split('\n');
+        const modifiedLines = modifiedText.split('\n');
+        
+        // Simple line-by-line diff for demonstration
+        // In a real app, you might want to use a more sophisticated diff algorithm
+        const maxLines = Math.max(originalLines.length, modifiedLines.length);
+        
+        for (let i = 0; i < maxLines; i++) {
+            const originalLine = i < originalLines.length ? originalLines[i] : '';
+            const modifiedLine = i < modifiedLines.length ? modifiedLines[i] : '';
+            
+            if (originalLine !== modifiedLine) {
+                if (originalLine) {
+                    const removedLine = document.createElement('div');
+                    removedLine.className = 'diff-line diff-line-removed';
+                    removedLine.textContent = '- ' + originalLine;
+                    diffDisplay.appendChild(removedLine);
+                }
+                
+                if (modifiedLine) {
+                    const addedLine = document.createElement('div');
+                    addedLine.className = 'diff-line diff-line-added';
+                    addedLine.textContent = '+ ' + modifiedLine;
+                    diffDisplay.appendChild(addedLine);
+                }
+            } else {
+                const unchangedLine = document.createElement('div');
+                unchangedLine.className = 'diff-line';
+                unchangedLine.textContent = '  ' + originalLine;
+                diffDisplay.appendChild(unchangedLine);
+            }
+        }
+    }
+    
+    // Function to add a message to the chat
     function addMessageToChat(type, content) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `chat-message ${type}-message`;
         
-        // Store the original content as a data attribute
-        messageDiv.setAttribute('data-original-content', content);
-        
-        if (type === 'user') {
-            // For user messages, escape HTML and maintain line breaks
-            messageDiv.textContent = content;
-        } else {
-            // For AI messages, render as markdown
-            messageDiv.innerHTML = DOMPurify.sanitize(marked.parse(content));
+        // For AI messages, we'll render Markdown
+        if (type === 'ai') {
+            // Check if content contains a note suggestion
+            const newNoteMatch = content.match(/<new_note>\n([\s\S]*?)\n<\/new_note>/);
+            if (newNoteMatch) {
+                // Replace the <new_note> tags with styled div
+                const beforeNote = content.substring(0, content.indexOf('<new_note>'));
+                const afterNote = content.substring(content.indexOf('</new_note>') + '</new_note>'.length);
+                
+                const noteContent = newNoteMatch[1].trim();
+                
+                const renderedContent = `
+                    ${beforeNote ? DOMPurify.sanitize(marked.parse(beforeNote)) : ''}
+                    <div class="suggested-note">
+                        <div class="suggested-note-header">📝 Suggested Note Content:</div>
+                        <pre class="suggested-note-content">${noteContent}</pre>
+                    </div>
+                    ${afterNote ? DOMPurify.sanitize(marked.parse(afterNote)) : ''}
+                `;
+                
+                messageDiv.innerHTML = renderedContent;
+            } else {
+                // Regular markdown rendering
+                messageDiv.innerHTML = DOMPurify.sanitize(marked.parse(content));
+            }
             
-            // Create message actions container
+            // Add message actions (copy, etc.)
             const actionsDiv = document.createElement('div');
             actionsDiv.className = 'message-actions';
             
-            // Create copy button
             const copyBtn = document.createElement('button');
             copyBtn.className = 'message-action-btn copy';
-            copyBtn.textContent = 'copy';
-            copyBtn.onclick = async () => {
-                try {
-                    const originalContent = messageDiv.getAttribute('data-original-content');
-                    await navigator.clipboard.writeText(originalContent);
-                    const notification = document.createElement('div');
-                    notification.className = 'copy-notification';
-                    notification.textContent = 'Copied!';
-                    messageDiv.appendChild(notification);
-                    setTimeout(() => notification.remove(), 1500);
-                } catch (err) {
-                    console.error('Failed to copy:', err);
-                }
-            };
+            copyBtn.innerHTML = '📋';
+            copyBtn.title = 'Copy to clipboard';
+            copyBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(content).then(() => {
+                    showCopyNotification(copyBtn);
+                });
+            });
             
-            // Create new chat button
-            const newChatBtn = document.createElement('button');
-            newChatBtn.className = 'message-action-btn chat';
-            newChatBtn.textContent = 'chat';
-            newChatBtn.onclick = () => {
-                const originalContent = messageDiv.getAttribute('data-original-content');
-                // Clear chat history
-                chatMessages.innerHTML = '';
-                chatHistory = [];
-                
-                // Add system message
-                addMessageToChat('ai', 'Starting new chat with the selected message.');
-                
-                // Set the message as user input
-                chatInput.value = originalContent;
-                
-                // Focus the input
-                chatInput.focus();
-            };
-            
-            // Add buttons to actions container
             actionsDiv.appendChild(copyBtn);
-            actionsDiv.appendChild(newChatBtn);
-            
-            // Add actions to message
             messageDiv.appendChild(actionsDiv);
+            
+        } else {
+            // User messages are plain text
+            messageDiv.textContent = content;
         }
         
         chatMessages.appendChild(messageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
     
-    // Function to update streaming message content
+    // Function to update the current AI message content
     function updateMessageContent(content) {
-        if (currentMessageDiv) {
-            // Store existing actions if any
-            const existingActions = currentMessageDiv.querySelector('.message-actions');
+        if (!currentMessageDiv) return;
+        
+        // Check if content contains a note suggestion
+        const newNoteMatch = content.match(/<new_note>\n([\s\S]*?)\n<\/new_note>/);
+        if (newNoteMatch) {
+            // Replace the <new_note> tags with styled div
+            const beforeNote = content.substring(0, content.indexOf('<new_note>'));
+            const afterNote = content.substring(content.indexOf('</new_note>') + '</new_note>'.length);
             
-            // Update the original content data attribute
-            currentMessageDiv.setAttribute('data-original-content', content);
+            const noteContent = newNoteMatch[1].trim();
             
-            // Update content
+            const renderedContent = `
+                ${beforeNote ? DOMPurify.sanitize(marked.parse(beforeNote)) : ''}
+                <div class="suggested-note">
+                    <div class="suggested-note-header">📝 Suggested Note Content:</div>
+                    <pre class="suggested-note-content">${noteContent}</pre>
+                </div>
+                ${afterNote ? DOMPurify.sanitize(marked.parse(afterNote)) : ''}
+            `;
+            
+            currentMessageDiv.innerHTML = renderedContent;
+        } else {
+            // Regular markdown rendering
             currentMessageDiv.innerHTML = DOMPurify.sanitize(marked.parse(content));
-            
-            // If there were actions, recreate them
-            if (existingActions) {
-                currentMessageDiv.appendChild(existingActions);
-            } else {
-                // Create new actions for the first time
-                const actionsDiv = document.createElement('div');
-                actionsDiv.className = 'message-actions';
-                
-                const copyBtn = document.createElement('button');
-                copyBtn.className = 'message-action-btn copy';
-                copyBtn.textContent = 'copy';
-                copyBtn.onclick = async () => {
-                    try {
-                        const originalContent = currentMessageDiv.getAttribute('data-original-content');
-                        await navigator.clipboard.writeText(originalContent);
-                        const notification = document.createElement('div');
-                        notification.className = 'copy-notification';
-                        notification.textContent = 'Copied!';
-                        currentMessageDiv.appendChild(notification);
-                        setTimeout(() => notification.remove(), 1500);
-                    } catch (err) {
-                        console.error('Failed to copy:', err);
-                    }
-                };
-                
-                const newChatBtn = document.createElement('button');
-                newChatBtn.className = 'message-action-btn chat';
-                newChatBtn.textContent = 'chat';
-                newChatBtn.onclick = () => {
-                    const originalContent = currentMessageDiv.getAttribute('data-original-content');
-                    chatMessages.innerHTML = '';
-                    chatHistory = [];
-                    addMessageToChat('ai', 'Starting new chat with the selected message.');
-                    chatInput.value = originalContent;
-                    chatInput.focus();
-                };
-                
-                actionsDiv.appendChild(copyBtn);
-                actionsDiv.appendChild(newChatBtn);
-                currentMessageDiv.appendChild(actionsDiv);
-            }
-            
-            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
+        
+        // Add message actions (copy, etc.)
+        let actionsDiv = currentMessageDiv.querySelector('.message-actions');
+        if (!actionsDiv) {
+            actionsDiv = document.createElement('div');
+            actionsDiv.className = 'message-actions';
+            
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'message-action-btn copy';
+            copyBtn.innerHTML = '📋';
+            copyBtn.title = 'Copy to clipboard';
+            copyBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(content).then(() => {
+                    showCopyNotification(copyBtn);
+                });
+            });
+            
+            actionsDiv.appendChild(copyBtn);
+            currentMessageDiv.appendChild(actionsDiv);
+        }
+        
+        chatMessages.scrollTop = chatMessages.scrollHeight;
     }
-
-    // Function to add apply button to the current message
+    
+    // Function to add apply button for note suggestions
     function addApplyButton() {
         if (!currentMessageDiv || !lastNewNoteContent) return;
-
-        const buttonContainer = document.createElement('div');
-        buttonContainer.className = 'apply-changes-container';
+        
+        // Check if apply button already exists
+        if (currentMessageDiv.querySelector('.apply-changes-container')) return;
+        
+        const applyContainer = document.createElement('div');
+        applyContainer.className = 'apply-changes-container';
         
         const applyButton = document.createElement('button');
         applyButton.className = 'apply-changes-btn';
-        applyButton.textContent = 'Apply Changes to Note';
-        applyButton.onclick = () => {
+        applyButton.textContent = 'Apply to Editor';
+        applyButton.addEventListener('click', () => {
             if (editor && lastNewNoteContent) {
                 editor.setValue(lastNewNoteContent);
-                // Add a small notification
-                const notification = document.createElement('span');
+                
+                // Show notification
+                const notification = document.createElement('div');
                 notification.className = 'apply-notification';
-                notification.textContent = '✓ Changes applied';
-                buttonContainer.appendChild(notification);
-                applyButton.disabled = true;
-                // Remove notification after 2 seconds
+                notification.textContent = 'Changes applied to editor!';
+                applyContainer.appendChild(notification);
+                
+                // Remove notification after 3 seconds
                 setTimeout(() => {
                     notification.remove();
-                }, 2000);
+                }, 3000);
             }
-        };
+        });
         
-        buttonContainer.appendChild(applyButton);
-        currentMessageDiv.appendChild(buttonContainer);
+        applyContainer.appendChild(applyButton);
+        currentMessageDiv.appendChild(applyContainer);
     }
-
-    // Add resize event listeners
-    chatSection.addEventListener('mousedown', (e) => {
-        // Check if clicking on the resize handle (within 10px of the left border)
-        if (e.offsetX <= 10) {
-            isResizing = true;
-            startX = e.pageX;
-            startWidth = chatSection.offsetWidth;
-            
-            // Add event listeners for drag operation
-            document.addEventListener('mousemove', handleMouseMove);
-            document.addEventListener('mouseup', handleMouseUp);
-            
-            // Prevent text selection during resize
-            document.body.style.userSelect = 'none';
+    
+    // Function to show copy notification
+    function showCopyNotification(button) {
+        // Check if notification already exists
+        let notification = button.parentElement.querySelector('.copy-notification');
+        if (!notification) {
+            notification = document.createElement('div');
+            notification.className = 'copy-notification';
+            notification.textContent = 'Copied!';
+            button.parentElement.appendChild(notification);
         }
+        
+        // Show notification
+        notification.classList.add('show');
+        
+        // Hide notification after 2 seconds
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 2000);
+    }
+    
+    // Handle window resize to adjust chat panel
+    window.addEventListener('resize', () => {
+        // Adjust chat panel height if needed
     });
-
+    
+    // Make chat panel resizable
+    const chatResizer = document.createElement('div');
+    chatResizer.className = 'chat-resizer';
+    chatSection.appendChild(chatResizer);
+    
+    chatResizer.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        startX = e.clientX;
+        startWidth = parseInt(getComputedStyle(chatSection).width, 10);
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+        e.preventDefault();
+    });
+    
     function handleMouseMove(e) {
         if (!isResizing) return;
-        
-        const width = startWidth - (e.pageX - startX);
-        // Set minimum and maximum width constraints
-        if (width >= 200 && width <= 800) {
-            chatSection.style.width = width + 'px';
-            // If CodeMirror editor exists, trigger a refresh to adjust layout
-            if (editor) {
-                editor.refresh();
-            }
-        }
+        const width = startWidth - (e.clientX - startX);
+        chatSection.style.width = `${Math.max(200, Math.min(800, width))}px`;
     }
-
+    
     function handleMouseUp() {
         isResizing = false;
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
-        document.body.style.userSelect = '';
     }
+    
+    // Listen for IPC events from main process
+    window.api.onAiModifyContent && window.api.onAiModifyContent((event, content, prompt) => {
+        lastOriginalContent = content;
+        
+        // Construct the system prompt
+        const systemPrompt = `You are an AI assistant that helps users modify their notes. The user has the following note content:
 
-    // Clear chat functionality
-    clearChat.addEventListener('click', () => {
-        // Clear the chat messages from the UI
-        chatMessages.innerHTML = '';
-        // Clear the chat history array
-        chatHistory = [];
-        // Add a system message to show the chat was cleared
-        addMessageToChat('ai', 'Chat history has been cleared.');
+<original_content>
+${content}
+</original_content>
+
+The user wants you to modify this content according to this instruction: "${prompt}"
+
+Please provide the modified version of the note content. Return ONLY the modified content without any additional explanations or formatting. The result should be a complete replacement of the original content.`;
+        
+        // Call Ollama API
+        fetch(`${ollamaUrl}/api/generate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                model: modelName,
+                prompt: systemPrompt,
+                stream: false
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            lastModifiedContent = data.response.trim();
+            // Generate diff display
+            generateDiffDisplay(lastOriginalContent, lastModifiedContent);
+            // Show the modification result dialog
+            aiModificationResult.classList.remove('hidden');
+        })
+        .catch(error => {
+            console.error('Error modifying content:', error);
+            alert('Error modifying content: ' + error.message);
+        });
     });
 }); 

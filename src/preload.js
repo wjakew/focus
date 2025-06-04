@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld(
     onWindowMaximized: (callback) => ipcRenderer.on('window-maximized', callback),
     onWindowUnmaximized: (callback) => ipcRenderer.on('window-unmaximized', callback),
     onTogglePreview: (callback) => ipcRenderer.on('toggle-preview', callback),
+    onAiModifyContent: (callback) => ipcRenderer.on('ai-modify-content', callback),
     
     // From renderer to main
     saveFileContent: (content) => ipcRenderer.send('file-content', content),
@@ -21,6 +22,9 @@ contextBridge.exposeInMainWorld(
     newFile: () => ipcRenderer.send('new-file'),
     openFile: () => ipcRenderer.send('open-file'),
     saveFile: () => ipcRenderer.send('save-file'),
-    saveFileAs: () => ipcRenderer.send('save-as')
+    saveFileAs: () => ipcRenderer.send('save-as'),
+    
+    // AI operations
+    aiModifyContent: (content, prompt) => ipcRenderer.send('ai-modify-content', content, prompt)
   }
 );
