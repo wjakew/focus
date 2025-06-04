@@ -185,6 +185,14 @@ const menuTemplate = [
   {
     label: 'View',
     submenu: [
+      {
+        label: 'Toggle Preview',
+        accelerator: process.platform === 'darwin' ? 'Command+P' : 'Ctrl+P',
+        click() {
+          mainWindow.webContents.send('toggle-preview');
+        }
+      },
+      { type: 'separator' },
       { role: 'reload' },
       { role: 'toggledevtools' },
       { type: 'separator' },

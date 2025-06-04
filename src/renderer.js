@@ -25,6 +25,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update the toolbar mode button text to reflect default state
     document.getElementById('toggle-toolbar-mode').textContent = 'Toolbar Mode: Floating';
     
+    // Hide preview by default
+    previewSection.classList.add('hidden');
+    // Make editor take full width when preview is hidden
+    const editorSection = document.querySelector('.editor-section');
+    editorSection.style.width = '100%';
+    
     // Save unsaved content when window is about to close
     window.addEventListener('beforeunload', () => {
         // Save current content to localStorage if there's unsaved work
@@ -55,16 +61,17 @@ document.addEventListener('DOMContentLoaded', () => {
         viewDropdown.classList.remove('show');
     });
     
-    // Toggle preview functionality
-    document.getElementById('toggle-preview').addEventListener('click', () => {
+    // Function to toggle preview
+    function togglePreview() {
         previewSection.classList.toggle('hidden');
-        viewDropdown.classList.remove('show');
         // If preview is hidden, make editor take full width
-        const editorSection = document.querySelector('.editor-section');
         editorSection.style.width = previewSection.classList.contains('hidden') ? '100%' : '';
         // Trigger a refresh on the editor to ensure proper rendering
         editor.refresh();
-    });
+    }
+    
+    // Toggle preview button click handler
+    document.getElementById('toggle-preview').addEventListener('click', togglePreview);
     
     // Toggle toolbar visibility
     document.getElementById('toggle-toolbar').addEventListener('click', () => {
@@ -207,7 +214,9 @@ document.addEventListener('DOMContentLoaded', () => {
           } else {
             cm.replaceSelection('  ', 'end', '+input');
           }
-        }
+        },
+        'Ctrl-P': togglePreview,  // Add keyboard shortcut for preview toggle
+        'Cmd-P': togglePreview    // For Mac users
       }
     });
     
@@ -259,6 +268,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Listen for save file events
     window.api.onSaveFile(() => {
       window.api.saveFileContent(currentContent);
+    });
+    
+    // Listen for toggle preview events from the menu
+    window.api.onTogglePreview(() => {
+      togglePreview();
     });
     
     // Update the preview with the markdown content

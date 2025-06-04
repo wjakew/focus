@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld(
     onSaveFile: (callback) => ipcRenderer.on('save-file', callback),
     onWindowMaximized: (callback) => ipcRenderer.on('window-maximized', callback),
     onWindowUnmaximized: (callback) => ipcRenderer.on('window-unmaximized', callback),
+    onTogglePreview: (callback) => ipcRenderer.on('toggle-preview', callback),
     
     // From renderer to main
     saveFileContent: (content) => ipcRenderer.send('file-content', content),
