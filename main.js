@@ -80,6 +80,31 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
+  
+  // Save current file path when closing the window
+  mainWindow.on('close', () => {
+    if (currentFilePath) {
+      store.set('lastOpenedFile', currentFilePath);
+    }
+  });
+  
+  // Restore last opened file
+  const lastOpenedFile = store.get('lastOpenedFile');
+  if (lastOpenedFile && fs.existsSync(lastOpenedFile)) {
+    currentFilePath = lastOpenedFile;
+    fs.readFile(currentFilePath, 'utf8', (err, data) => {
+      if (err) {
+        console.error('An error occurred reading the file:', err);
+        return;
+      }
+      
+      // Add a slight delay to ensure the renderer process is ready
+      setTimeout(() => {
+        mainWindow.webContents.send('file-opened', { content: data, filePath: currentFilePath });
+        mainWindow.setTitle(`Markdown Editor - ${path.basename(currentFilePath)}`);
+      }, 500);
+    });
+  }
 }
 
 // Create menu template

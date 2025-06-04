@@ -7,6 +7,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let isToolbarVisible = true;
     let isToolbarFloating = true;  // Set floating mode as default
     
+    // Load theme preference from localStorage or set default to light
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    
     // Menu functionality
     const menuBtn = document.getElementById('menu-btn');
     const menuDropdown = document.getElementById('menu-dropdown');
@@ -20,6 +24,16 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Update the toolbar mode button text to reflect default state
     document.getElementById('toggle-toolbar-mode').textContent = 'Toolbar Mode: Floating';
+    
+    // Save unsaved content when window is about to close
+    window.addEventListener('beforeunload', () => {
+        // Save current content to localStorage if there's unsaved work
+        if (currentContent) {
+            localStorage.setItem('lastUnsavedContent', currentContent);
+        } else {
+            localStorage.removeItem('lastUnsavedContent');
+        }
+    });
     
     // Toggle menu dropdown
     menuBtn.addEventListener('click', (e) => {
@@ -197,6 +211,15 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
     
+    // Restore unsaved content if available and no file is opened
+    const lastUnsavedContent = localStorage.getItem('lastUnsavedContent');
+    if (lastUnsavedContent && !currentFilePath) {
+        editor.setValue(lastUnsavedContent);
+        currentContent = lastUnsavedContent;
+        updatePreview(currentContent);
+        updateWordCount(currentContent);
+    }
+    
     // Add key handler for "/"
     editor.on('keyup', (cm, event) => {
       if (event.key === '/') {
@@ -222,8 +245,15 @@ document.addEventListener('DOMContentLoaded', () => {
       // Set editor content
       editor.setValue(currentContent);
       
+      // Ensure preview is updated
+      updatePreview(currentContent);
+      updateWordCount(currentContent);
+      
       // Update file info in status bar
       updateFileInfo(currentFilePath);
+      
+      // Clear last unsaved content since we now have a file open
+      localStorage.removeItem('lastUnsavedContent');
     });
     
     // Listen for save file events
@@ -358,8 +388,10 @@ document.addEventListener('DOMContentLoaded', () => {
       
       if (currentTheme === 'light') {
         html.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'dark');
       } else {
         html.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light');
       }
     });
   });
