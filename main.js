@@ -217,6 +217,8 @@ function newFile() {
   currentFilePath = null;
   mainWindow.webContents.send('file-opened', { content: '', filePath: null });
   mainWindow.setTitle('Markdown Editor - Untitled');
+  // Clear the stored last opened file when creating a new file
+  store.delete('lastOpenedFile');
 }
 
 // Function to open a file

@@ -1151,7 +1151,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 8px 12px;
-    background-color: var(--accent-color);
+    background-color: #ff9e64;
     color: white;
     font-weight: 500;
 }
@@ -1200,7 +1200,7 @@ body {
 
 .modify-btn {
     padding: 8px 16px;
-    background-color: var(--accent-color);
+    background-color: #ff9e64;
     color: white;
     border: none;
     border-radius: var(--border-radius-sm);
@@ -1211,11 +1211,11 @@ body {
 }
 
 .modify-btn:hover {
-    background-color: #6992e6;
+    background-color: #ffb088;
 }
 
 .modify-btn:active {
-    background-color: #5982d6;
+    background-color: #ff8a40;
 }
 
 /* Diff Display */

@@ -156,6 +156,12 @@ document.addEventListener('DOMContentLoaded', () => {
     acceptChanges.addEventListener('click', () => {
         if (editor && lastModifiedContent) {
             editor.setValue(lastModifiedContent);
+            
+            // Trigger custom event to update preview
+            document.dispatchEvent(new CustomEvent('ai-content-update', { 
+                detail: { content: lastModifiedContent }
+            }));
+            
             aiModificationResult.classList.add('hidden');
         }
     });
@@ -542,6 +548,11 @@ The current user prompt is: ${message}`
         applyButton.addEventListener('click', () => {
             if (editor && lastNewNoteContent) {
                 editor.setValue(lastNewNoteContent);
+                
+                // Trigger custom event to update preview
+                document.dispatchEvent(new CustomEvent('ai-content-update', { 
+                    detail: { content: lastNewNoteContent }
+                }));
                 
                 // Show notification
                 const notification = document.createElement('div');

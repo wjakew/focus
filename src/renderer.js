@@ -31,6 +31,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const editorSection = document.querySelector('.editor-section');
     editorSection.style.width = '100%';
     
+    // Listen for AI content updates to manually refresh the preview
+    document.addEventListener('ai-content-update', (event) => {
+        if (event.detail && event.detail.content) {
+            updatePreview(event.detail.content);
+            updateWordCount(event.detail.content);
+            
+            // Make sure preview is visible when AI generates content
+            if (previewSection.classList.contains('hidden')) {
+                togglePreview();
+            }
+        }
+    });
+    
     // Save unsaved content when window is about to close
     window.addEventListener('beforeunload', () => {
         // Save current content to localStorage if there's unsaved work
