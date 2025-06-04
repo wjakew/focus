@@ -607,19 +607,31 @@ The current user prompt is: ${message}`
         startWidth = parseInt(getComputedStyle(chatSection).width, 10);
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', handleMouseUp);
+        document.body.style.cursor = 'ew-resize';
         e.preventDefault();
     });
     
     function handleMouseMove(e) {
         if (!isResizing) return;
-        const width = startWidth - (e.clientX - startX);
-        chatSection.style.width = `${Math.max(200, Math.min(800, width))}px`;
+        
+        // Calculate the new width based on how far the mouse has moved
+        const editorContainer = document.querySelector('.editor-container');
+        const containerWidth = editorContainer.offsetWidth;
+        const diff = startX - e.clientX;
+        const newWidth = Math.max(200, Math.min(containerWidth * 0.8, startWidth + diff));
+        
+        // Apply the new width
+        chatSection.style.width = `${newWidth}px`;
+        
+        // Prevent text selection during resize
+        e.preventDefault();
     }
     
     function handleMouseUp() {
         isResizing = false;
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
+        document.body.style.cursor = '';
     }
     
     // Listen for IPC events from main process

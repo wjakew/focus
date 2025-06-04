@@ -627,12 +627,22 @@ body {
     border-left: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    transition: none;
+    transition: width 0.2s ease;
     position: relative;
 }
 
 .chat-section::before {
     content: '';
+    position: absolute;
+    left: -5px;
+    top: 0;
+    bottom: 0;
+    width: 10px;
+    cursor: ew-resize;
+    z-index: 10;
+}
+
+.chat-resizer {
     position: absolute;
     left: -5px;
     top: 0;
