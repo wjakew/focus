@@ -75,6 +75,17 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleAiModifier.addEventListener('click', () => {
         aiContentModifier.classList.toggle('hidden');
         aiDropdown.classList.remove('show');
+        
+        // Update placeholder text based on whether note is empty or not
+        if (editor) {
+            const isEmpty = editor.getValue().trim() === '';
+            modifierPrompt.placeholder = isEmpty ? 
+                "Describe the note you want to create..." : 
+                "Describe how you want to modify this note...";
+            
+            // Update button text
+            modifyContent.textContent = isEmpty ? "Create Content" : "Modify Content";
+        }
     });
     
     // Close AI content modifier
@@ -158,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
     modifyContent.addEventListener('click', async () => {
         const prompt = modifierPrompt.value.trim();
         if (!prompt) {
-            alert('Please enter a prompt for how you want to modify the content.');
+            alert('Please enter a prompt for how you want to modify or create content.');
             return;
         }
         
@@ -168,14 +179,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         const noteContent = editor.getValue();
+        const isEmpty = noteContent.trim() === '';
         lastOriginalContent = noteContent;
         
         // Show loading overlay
         loadingOverlay.classList.remove('hidden');
         
         try {
-            // Construct the system prompt
-            const systemPrompt = `You are an AI assistant that helps users modify their notes. The user has the following note content:
+            // Construct different prompts based on whether the note is empty or not
+            let systemPrompt;
+            
+            if (isEmpty) {
+                // For empty notes, ask AI to create new content
+                systemPrompt = `You are an AI assistant that helps users create new notes. The user wants you to create note content based on this instruction: "${prompt}"
+
+Please provide complete note content based on the user's request. Return ONLY the content without any additional explanations or formatting. Create comprehensive, well-structured content that matches what the user is asking for.`;
+                
+                // Update dialog title and button text
+                document.getElementById('modification-result-title').textContent = 'AI Content Creation';
+                document.getElementById('accept-changes').textContent = 'Use This Content';
+            } else {
+                // For existing notes, ask AI to modify content
+                systemPrompt = `You are an AI assistant that helps users modify their notes. The user has the following note content:
 
 <original_content>
 ${noteContent}
@@ -184,6 +209,11 @@ ${noteContent}
 The user wants you to modify this content according to this instruction: "${prompt}"
 
 Please provide the modified version of the note content. Return ONLY the modified content without any additional explanations or formatting. The result should be a complete replacement of the original content.`;
+                
+                // Update dialog title and button text
+                document.getElementById('modification-result-title').textContent = 'AI Content Modification';
+                document.getElementById('accept-changes').textContent = 'Accept Changes';
+            }
             
             // Call Ollama API
             const response = await fetch(`${ollamaUrl}/api/generate`, {
@@ -333,6 +363,27 @@ The current user prompt is: ${message}`
     function generateDiffDisplay(originalText, modifiedText) {
         diffDisplay.innerHTML = '';
         
+        // Special handling for empty original content
+        if (originalText.trim() === '') {
+            // For empty notes, just show the new content without diff markers
+            const headerMessage = document.createElement('div');
+            headerMessage.className = 'diff-header-message';
+            headerMessage.textContent = 'Creating new content based on your request:';
+            diffDisplay.appendChild(headerMessage);
+            
+            const modifiedLines = modifiedText.split('\n');
+            
+            modifiedLines.forEach(line => {
+                const contentLine = document.createElement('div');
+                contentLine.className = 'diff-line diff-line-new-content';
+                contentLine.textContent = line;
+                diffDisplay.appendChild(contentLine);
+            });
+            
+            return;
+        }
+        
+        // Regular diff for modifications to existing content
         const originalLines = originalText.split('\n');
         const modifiedLines = modifiedText.split('\n');
         
@@ -563,9 +614,23 @@ The current user prompt is: ${message}`
     // Listen for IPC events from main process
     window.api.onAiModifyContent && window.api.onAiModifyContent((event, content, prompt) => {
         lastOriginalContent = content;
+        const isEmpty = content.trim() === '';
         
-        // Construct the system prompt
-        const systemPrompt = `You are an AI assistant that helps users modify their notes. The user has the following note content:
+        // Construct different prompts based on whether the note is empty or not
+        let systemPrompt;
+        
+        if (isEmpty) {
+            // For empty notes, ask AI to create new content
+            systemPrompt = `You are an AI assistant that helps users create new notes. The user wants you to create note content based on this instruction: "${prompt}"
+
+Please provide complete note content based on the user's request. Return ONLY the content without any additional explanations or formatting. Create comprehensive, well-structured content that matches what the user is asking for.`;
+            
+            // Update dialog title and button text
+            document.getElementById('modification-result-title').textContent = 'AI Content Creation';
+            document.getElementById('accept-changes').textContent = 'Use This Content';
+        } else {
+            // For existing notes, ask AI to modify content
+            systemPrompt = `You are an AI assistant that helps users modify their notes. The user has the following note content:
 
 <original_content>
 ${content}
@@ -574,6 +639,11 @@ ${content}
 The user wants you to modify this content according to this instruction: "${prompt}"
 
 Please provide the modified version of the note content. Return ONLY the modified content without any additional explanations or formatting. The result should be a complete replacement of the original content.`;
+            
+            // Update dialog title and button text
+            document.getElementById('modification-result-title').textContent = 'AI Content Modification';
+            document.getElementById('accept-changes').textContent = 'Accept Changes';
+        }
         
         // Call Ollama API
         fetch(`${ollamaUrl}/api/generate`, {
