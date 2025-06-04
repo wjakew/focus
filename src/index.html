@@ -36,6 +36,7 @@
             <button id="toggle-toolbar">Toggle Toolbar</button>
             <button id="toggle-toolbar-mode">Toolbar Mode: Floating</button>
             <button id="toggle-theme">Toggle Theme</button>
+            <button id="toggle-search">Search in Note (Ctrl/Cmd+F)</button>
           </div>
         </div>
         <div class="menu-button">
@@ -172,6 +173,24 @@
       <div class="dialog-buttons">
         <button id="accept-changes">Accept Changes</button>
         <button id="reject-changes">Reject Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Panel -->
+  <div id="search-panel" class="search-panel hidden">
+    <div class="search-header">
+      <span>Search Note</span>
+      <button id="close-search" class="close-search-btn">×</button>
+    </div>
+    <div class="search-body">
+      <div class="search-input-container">
+        <input type="text" id="search-input" placeholder="Search in note...">
+        <div class="search-controls">
+          <button id="search-prev" class="search-nav-btn" title="Previous match">↑</button>
+          <button id="search-next" class="search-nav-btn" title="Next match">↓</button>
+          <span id="search-results-count">0/0</span>
+        </div>
       </div>
     </div>
   </div>
