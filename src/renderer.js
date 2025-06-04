@@ -145,18 +145,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // Reading mode button click handler
     document.getElementById('toggle-reading-mode').addEventListener('click', toggleReadingMode);
     
-    // Add toggle scroll sync option to view dropdown
-    const viewDropdownEl = document.getElementById('view-dropdown');
+    // Create toggle scroll sync button
     const toggleScrollSyncBtn = document.createElement('button');
     toggleScrollSyncBtn.id = 'toggle-scroll-sync';
     toggleScrollSyncBtn.textContent = 'Sync Scrolling: On';
-    viewDropdownEl.appendChild(toggleScrollSyncBtn);
-    
+
+    // Add toggle scroll sync button to menu dropdown (after search in file)
+    const menuDropdownEl = document.getElementById('menu-dropdown');
+    // Find the search in file button to insert after it
+    const searchInFileBtn = document.getElementById('toggle-search');
+    if (searchInFileBtn && searchInFileBtn.parentNode === menuDropdownEl) {
+        menuDropdownEl.insertBefore(toggleScrollSyncBtn, searchInFileBtn.nextSibling);
+    }
+
     // Toggle scroll sync
     toggleScrollSyncBtn.addEventListener('click', (e) => {
         isScrollSyncEnabled = !isScrollSyncEnabled;
         e.target.textContent = `Sync Scrolling: ${isScrollSyncEnabled ? 'On' : 'Off'}`;
-        viewDropdown.classList.remove('show');
+        menuDropdown.classList.remove('show');
     });
     
     // File operation handlers
