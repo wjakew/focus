@@ -6,6 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentFilePath = null;
     let isToolbarVisible = true;
     let isToolbarFloating = true;  // Set floating mode as default
+    let isScrollSyncEnabled = true;  // Enable scroll sync by default
+    let isReadingMode = false;  // Reading mode disabled by default
+    let isScrolling = false;  // Flag to prevent scroll loops
     
     // Load theme preference from localStorage or set default to light
     const savedTheme = localStorage.getItem('theme') || 'light';
@@ -98,6 +101,61 @@ document.addEventListener('DOMContentLoaded', () => {
         isToolbarFloating = !isToolbarFloating;
         toolbar.classList.toggle('floating');
         e.target.textContent = `Toolbar Mode: ${isToolbarFloating ? 'Floating' : 'Panel'}`;
+        viewDropdown.classList.remove('show');
+    });
+    
+    // Toggle reading mode
+    function toggleReadingMode() {
+        isReadingMode = !isReadingMode;
+        const appContainer = document.querySelector('.app-container');
+        const statusBar = document.querySelector('.status-bar');
+        
+        // Toggle reading mode class on the app container
+        appContainer.classList.toggle('reading-mode', isReadingMode);
+        
+        // Add or remove reading mode indicator in status bar
+        let indicator = document.querySelector('.reading-mode-indicator');
+        if (isReadingMode) {
+            if (!indicator) {
+                indicator = document.createElement('div');
+                indicator.className = 'reading-mode-indicator';
+                indicator.textContent = 'Reading Mode';
+                statusBar.appendChild(indicator);
+            }
+            
+            // Make sure preview is visible in reading mode
+            if (previewSection.classList.contains('hidden')) {
+                previewSection.classList.remove('hidden');
+            }
+        } else {
+            if (indicator) {
+                indicator.remove();
+            }
+            
+            // Reset editor width when exiting reading mode
+            editorSection.style.width = previewSection.classList.contains('hidden') ? '100%' : '';
+        }
+        
+        viewDropdown.classList.remove('show');
+        
+        // Refresh the editor after toggling reading mode
+        editor.refresh();
+    }
+    
+    // Reading mode button click handler
+    document.getElementById('toggle-reading-mode').addEventListener('click', toggleReadingMode);
+    
+    // Add toggle scroll sync option to view dropdown
+    const viewDropdownEl = document.getElementById('view-dropdown');
+    const toggleScrollSyncBtn = document.createElement('button');
+    toggleScrollSyncBtn.id = 'toggle-scroll-sync';
+    toggleScrollSyncBtn.textContent = 'Sync Scrolling: On';
+    viewDropdownEl.appendChild(toggleScrollSyncBtn);
+    
+    // Toggle scroll sync
+    toggleScrollSyncBtn.addEventListener('click', (e) => {
+        isScrollSyncEnabled = !isScrollSyncEnabled;
+        e.target.textContent = `Sync Scrolling: ${isScrollSyncEnabled ? 'On' : 'Off'}`;
         viewDropdown.classList.remove('show');
     });
     
@@ -211,6 +269,50 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 100);
     }
     
+    // Set up scroll sync between editor and preview
+    function setupScrollSync() {
+      const preview = document.getElementById('preview');
+      let isScrolling = false; // Flag to prevent scroll loops
+      
+      // Handle editor scrolling
+      editor.on('scroll', () => {
+        if (!isScrollSyncEnabled || isScrolling || previewSection.classList.contains('hidden')) return;
+        
+        isScrolling = true;
+        
+        // Calculate the scroll position as a percentage
+        const scrollInfo = editor.getScrollInfo();
+        const scrollPercent = scrollInfo.top / (scrollInfo.height - scrollInfo.clientHeight);
+        
+        // Apply the same percentage to the preview
+        preview.scrollTop = scrollPercent * (preview.scrollHeight - preview.clientHeight);
+        
+        // Reset scrolling flag after a short delay
+        setTimeout(() => {
+          isScrolling = false;
+        }, 50);
+      });
+      
+      // Handle preview scrolling
+      preview.addEventListener('scroll', () => {
+        if (!isScrollSyncEnabled || isScrolling || previewSection.classList.contains('hidden')) return;
+        
+        isScrolling = true;
+        
+        // Calculate the scroll position as a percentage
+        const scrollPercent = preview.scrollTop / (preview.scrollHeight - preview.clientHeight);
+        
+        // Apply the same percentage to the editor
+        const scrollInfo = editor.getScrollInfo();
+        editor.scrollTo(null, scrollPercent * (scrollInfo.height - scrollInfo.clientHeight));
+        
+        // Reset scrolling flag after a short delay
+        setTimeout(() => {
+          isScrolling = false;
+        }, 50);
+      });
+    }
+    
     // Initialize CodeMirror editor
     editor = CodeMirror(document.getElementById('editor'), {
       mode: 'markdown',
@@ -232,6 +334,9 @@ document.addEventListener('DOMContentLoaded', () => {
         'Cmd-P': togglePreview    // For Mac users
       }
     });
+    
+    // Set up scroll sync after editor is initialized
+    setupScrollSync();
     
     // Search functionality
     let currentSearchQuery = '';
@@ -626,5 +731,33 @@ document.addEventListener('DOMContentLoaded', () => {
         html.setAttribute('data-theme', 'light');
         localStorage.setItem('theme', 'light');
       }
+    });
+    
+    // Register keyboard shortcuts
+    editor.setOption('extraKeys', {
+        'Ctrl-S': function() { window.api.saveFile(); },
+        'Cmd-S': function() { window.api.saveFile(); },
+        'Ctrl-O': function() { window.api.openFile(); },
+        'Cmd-O': function() { window.api.openFile(); },
+        'Ctrl-N': function() { window.api.newFile(); },
+        'Cmd-N': function() { window.api.newFile(); },
+        'Ctrl-P': togglePreview,
+        'Cmd-P': togglePreview,
+        'Ctrl-R': toggleReadingMode,
+        'Cmd-R': toggleReadingMode,
+        'Ctrl-F': toggleSearchPanel,
+        'Cmd-F': toggleSearchPanel,
+        '/': function(cm) {
+            const cursor = cm.getCursor();
+            const line = cm.getLine(cursor.line);
+            const ch = cursor.ch;
+            
+            // Check if "/" is the first character on the line or follows only whitespace
+            if (ch === 1 && line[0] === '/' || (ch > 1 && line.substring(0, ch-1).trim() === '' && line[ch-1] === '/')) {
+                showMarkdownComponentMenu(cm);
+            } else {
+                cm.replaceRange('/', cursor);
+            }
+        }
     });
   });

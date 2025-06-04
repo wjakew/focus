@@ -13,6 +13,7 @@ A lightweight and feature-rich markdown editor built for simplicity and producti
 - **Real-time Preview**: See your markdown rendered as you type.
 - **Syntax Highlighting**: Code blocks and markdown syntax are highlighted for better readability.
 - **Toolbar Shortcuts**: Quick access to common markdown formatting options like headers, bold, italic, lists, and more.
+- **Reading Mode**: Distraction-free reading experience that hides the editor and focuses on the rendered content.
 - **File Management**: Create, open, save, and save-as functionality for managing your markdown files.
 - **Lightweight**: Built with minimal dependencies for fast performance.
 - **Local AI Integration**: Enhance your writing with AI-powered suggestions, auto-completion, and grammar checks, all running locally for privacy and speed.
@@ -32,11 +33,12 @@ Simply download the current release from the release page.
 3. **Save**: Save your work with the "Save" button or use "Save As" to save a copy.
 4. **Formatting**: Use the toolbar buttons to apply markdown formatting to your text.
 5. **Preview**: Your markdown is rendered in real-time in the preview pane.
-6. **Local AI Integration**:
+6. **Reading Mode**: Toggle reading mode with Ctrl/Cmd+R for a distraction-free reading experience.
+7. **Local AI Integration**:
    - Enable AI suggestions by clicking the AI icon in the toolbar.
    - Accept or ignore suggestions as you type for grammar, style, and auto-completion.
-7. **Dark Mode**:
+8. **Dark Mode**:
    - Toggle between light and dark themes via the "Theme" option in the settings menu.
-8. **Export Options**:
+9. **Export Options**:
    - Click the "Export" button and choose your desired format (HTML, PDF, or plain text).
    - The exported file will be saved to your default downloads folder.
